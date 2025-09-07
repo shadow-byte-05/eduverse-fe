@@ -44,6 +44,13 @@ const generateBtn = document.querySelector(".generate-btn");
 const goalInput = document.getElementById("goalInput");
 const roadmapOutput = document.getElementById("roadmapOutput");
 
+const fetchData = async (role) => {
+  console.log("fetching data ...")
+  const query = role.replace(/ /g, '-')
+  const apiResponse = await fetch(`http://localhost:8000/api/v1/roadmap/generate?role=${query}`)
+  return apiResponse
+}
+
 const apiResponse = {
   data: {
     roadmap: [
@@ -80,9 +87,41 @@ const apiResponse = {
   }
 };
 
-generateBtn.onclick = () => {
+document.querySelector('#goalInput').addEventListener('keydown', async (e) => {
+   if (e.key !== 'Enter') return 
+   e.preventDefault()
+  console.log('hello')
+  if (!goalInput.value) {
+    alert('Please enter a goal')
+    returndijsopd
+  }
+  roadmapOutput.innerHTML = ''
+  const apiResponse = await (await fetchData(goalInput.value)).json()
+  apiResponse.data.roadmap.forEach((stage) => {
+    const div = document.createElement('div')
+    div.classList.add('roadmap-stage')
+    div.innerHTML = `<h4>${stage.stage}</h4>
+      <strong>Skills:</strong>
+      <ul>${stage.skills.map((skill) => `<li>${skill}</li>`).join('')}</ul>
+      <strong>Resources:</strong>
+      <ul>${stage.resources
+        .map(
+          (res) =>
+            `<li><a href="${res.url}" target="_blank">${res.name}</a></li>`
+        )
+        .join('')}</ul>
+      <strong>Project:</strong>
+      <p>${stage.project}</p>`
+    roadmapOutput.appendChild(div)
+  })
+  modal.style.display = 'none'
+  resultModal.style.display = 'flex'
+})
+
+generateBtn.onclick = async () => {
   if (!goalInput.value) { alert("Please enter a goal"); return; }
   roadmapOutput.innerHTML = "";
+  const apiResponse = await ((await fetchData(goalInput.value)).json());
   apiResponse.data.roadmap.forEach(stage => {
     const div = document.createElement("div");
     div.classList.add("roadmap-stage");
