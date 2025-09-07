@@ -39,6 +39,14 @@ themeToggle.onclick = () => {
     localStorage.setItem("theme", "light");
   }
 };
+document.getElementById('openModal').addEventListener('click', function(e) {
+  e.preventDefault();
+  const href = this.getAttribute('href');
+  document.body.classList.add('fade-out');
+  setTimeout(() => {
+    window.location.href = href;
+  }, 500); // match transition time (0.5s)
+});
 
 const generateBtn = document.querySelector(".generate-btn");
 const goalInput = document.getElementById("goalInput");
