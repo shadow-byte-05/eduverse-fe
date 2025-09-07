@@ -55,6 +55,7 @@ a {
 .nav-links li a:hover {
   color: #7c3aed;
   transform: scale(1.1);
+  text-decoration: underline;
 }
 
 .actions {
