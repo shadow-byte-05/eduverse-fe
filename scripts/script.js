@@ -50,9 +50,67 @@ const fetchData = async (role) => {
   console.log("fetching data ...")
   const query = role.replace(/ /g, '-')
   const apiResponse = await fetch(
-    `https://eduverse-be-1.onrender.com/api/v1/roadmap/generate?role=${query}`
+    `http://localhost:8000/api/v1/roadmap/generate?role=${query}`
   )
   return apiResponse
+}
+
+// Mock data fallback when API quota is exceeded
+const getMockRoadmapData = (role) => {
+  const roleLower = role.toLowerCase()
+  
+  // Generic roadmap template
+  const mockRoadmap = {
+    roadmap: [
+      {
+        stage: "Beginner",
+        skills: [
+          "Fundamental Concepts",
+          "Basic Tools and Technologies", 
+          "Core Principles",
+          "Introduction to Best Practices"
+        ],
+        resources: [
+          { name: "Official Documentation", url: "https://example.com/docs" },
+          { name: "Free Online Course", url: "https://example.com/course" },
+          { name: "Community Forum", url: "https://example.com/forum" }
+        ],
+        project: `Build a simple ${role} project to practice basic concepts and get hands-on experience.`
+      },
+      {
+        stage: "Intermediate", 
+        skills: [
+          "Advanced Techniques",
+          "Problem-Solving Methods",
+          "Industry Standards",
+          "Collaboration Tools"
+        ],
+        resources: [
+          { name: "Advanced Tutorials", url: "https://example.com/advanced" },
+          { name: "Professional Certification", url: "https://example.com/cert" },
+          { name: "Industry Blog", url: "https://example.com/blog" }
+        ],
+        project: `Develop a comprehensive ${role} solution that demonstrates intermediate skills and real-world application.`
+      },
+      {
+        stage: "Advanced",
+        skills: [
+          "Expert-Level Techniques", 
+          "Architecture and Design Patterns",
+          "Performance Optimization",
+          "Leadership and Mentoring"
+        ],
+        resources: [
+          { name: "Expert Masterclass", url: "https://example.com/masterclass" },
+          { name: "Professional Network", url: "https://example.com/network" },
+          { name: "Research Papers", url: "https://example.com/research" }
+        ],
+        project: `Create an innovative ${role} system that showcases advanced expertise and contributes to the field.`
+      }
+    ]
+  }
+  
+  return mockRoadmap
 }
 
 const apiResponse = {
@@ -116,6 +174,42 @@ document.querySelector('#goalInput').addEventListener('keydown', async (e) => {
     const apiResponse = await response.json()
     console.log("Full API Response:", apiResponse) // Debug log
     
+    // Check if API quota is exceeded (429 error or quota-related message)
+    if (!apiResponse.success && apiResponse.message && 
+        (apiResponse.message.includes("quota") || apiResponse.message.includes("Too Many Requests"))) {
+      console.log("API quota exceeded, using mock data")
+      const mockData = getMockRoadmapData(goalInput.value)
+      const roadmapData = mockData.roadmap
+      
+      roadmapData.forEach((stage) => {
+        const div = document.createElement('div')
+        div.classList.add('roadmap-stage')
+        div.innerHTML = `<h4>${stage.stage}</h4>
+          <strong>Skills:</strong>
+          <ul>${stage.skills.map((skill) => `<li>${skill}</li>`).join('')}</ul>
+          <strong>Resources:</strong>
+          <ul>${stage.resources
+            .map(
+              (res) =>
+                `<li><a href="${res.url}" target="_blank">${res.name}</a></li>`
+            )
+            .join('')}</ul>
+          <strong>Project:</strong>
+          <p>${stage.project}</p>`
+        roadmapOutput.appendChild(div)
+      })
+      
+      // Show info message about using mock data
+      const infoDiv = document.createElement('div')
+      infoDiv.style.cssText = 'background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 12px; margin-bottom: 20px; color: #92400e;'
+      infoDiv.innerHTML = '⚠️ <strong>Note:</strong> AI service quota exceeded. Showing a sample roadmap structure. For personalized content, try again later.'
+      roadmapOutput.insertBefore(infoDiv, roadmapOutput.firstChild)
+      
+      modal.style.display = 'none'
+      resultModal.style.display = 'flex'
+      return
+    }
+    
     // Check if we have the expected response structure
     if (!apiResponse || !apiResponse.data) {
       console.error("Unexpected API response structure:", apiResponse)
@@ -151,7 +245,62 @@ document.querySelector('#goalInput').addEventListener('keydown', async (e) => {
     resultModal.style.display = 'flex'
   } catch (error) {
     console.error("Error generating roadmap:", error);
-    alert(`Failed to generate roadmap: ${error.message}. Please try again.`);
+    console.error("Error details:", {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
+    
+    // More specific error messages based on error type
+    let userMessage = "Failed to generate roadmap. Please try again.";
+    
+    if (error.message.includes("Failed to fetch")) {
+      userMessage = "Unable to connect to the server. Please check your internet connection and try again.";
+    } else if (error.message.includes("HTTP error")) {
+      userMessage = `Server error (${error.message}). Please try again later.`;
+    } else if (error.message.includes("Invalid response")) {
+      userMessage = "Received an unexpected response from the server. Please try again.";
+    } else if (error.message.includes("Invalid roadmap data")) {
+      userMessage = "The server returned invalid data. Please try again.";
+    }
+    
+    // Try to show mock data as fallback
+    try {
+      console.log("Attempting to show mock data as fallback");
+      roadmapOutput.innerHTML = '';
+      const mockData = getMockRoadmapData(goalInput.value);
+      const roadmapData = mockData.roadmap;
+      
+      roadmapData.forEach((stage) => {
+        const div = document.createElement('div');
+        div.classList.add('roadmap-stage');
+        div.innerHTML = `<h4>${stage.stage}</h4>
+          <strong>Skills:</strong>
+          <ul>${stage.skills.map((skill) => `<li>${skill}</li>`).join('')}</ul>
+          <strong>Resources:</strong>
+          <ul>${stage.resources
+            .map(
+              (res) =>
+                `<li><a href="${res.url}" target="_blank">${res.name}</a></li>`
+            )
+            .join('')}</ul>
+          <strong>Project:</strong>
+          <p>${stage.project}</p>`;
+        roadmapOutput.appendChild(div);
+      });
+      
+      // Show info message about using mock data
+      const infoDiv = document.createElement('div');
+      infoDiv.style.cssText = 'background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 12px; margin-bottom: 20px; color: #92400e;';
+      infoDiv.innerHTML = '⚠️ <strong>Note:</strong> Unable to connect to AI service. Showing a sample roadmap structure.';
+      roadmapOutput.insertBefore(infoDiv, roadmapOutput.firstChild);
+      
+      modal.style.display = 'none';
+      resultModal.style.display = 'flex';
+    } catch (fallbackError) {
+      console.error("Even fallback failed:", fallbackError);
+      alert(userMessage);
+    }
   } finally {
     // Hide loading state
     generateBtn.disabled = false;
@@ -179,6 +328,37 @@ generateBtn.onclick = async () => {
     
     const apiResponse = await response.json();
     console.log("Full API Response:", apiResponse); // Debug log
+    
+    // Check if API quota is exceeded (429 error or quota-related message)
+    if (!apiResponse.success && apiResponse.message && 
+        (apiResponse.message.includes("quota") || apiResponse.message.includes("Too Many Requests"))) {
+      console.log("API quota exceeded, using mock data")
+      const mockData = getMockRoadmapData(goalInput.value)
+      const roadmapData = mockData.roadmap
+      
+      roadmapData.forEach(stage => {
+        const div = document.createElement("div");
+        div.classList.add("roadmap-stage");
+        div.innerHTML = `<h4>${stage.stage}</h4>
+          <strong>Skills:</strong>
+          <ul>${stage.skills.map(skill => `<li>${skill}</li>`).join("")}</ul>
+          <strong>Resources:</strong>
+          <ul>${stage.resources.map(res => `<li><a href="${res.url}" target="_blank">${res.name}</a></li>`).join("")}</ul>
+          <strong>Project:</strong>
+          <p>${stage.project}</p>`;
+        roadmapOutput.appendChild(div);
+      });
+      
+      // Show info message about using mock data
+      const infoDiv = document.createElement('div')
+      infoDiv.style.cssText = 'background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 12px; margin-bottom: 20px; color: #92400e;'
+      infoDiv.innerHTML = '⚠️ <strong>Note:</strong> AI service quota exceeded. Showing a sample roadmap structure. For personalized content, try again later.'
+      roadmapOutput.insertBefore(infoDiv, roadmapOutput.firstChild)
+      
+      modal.style.display = "none";
+      resultModal.style.display = "flex";
+      return;
+    }
     
     // Check if we have the expected response structure
     if (!apiResponse || !apiResponse.data) {
@@ -210,7 +390,57 @@ generateBtn.onclick = async () => {
     resultModal.style.display = "flex";
   } catch (error) {
     console.error("Error generating roadmap:", error);
-    alert(`Failed to generate roadmap: ${error.message}. Please try again.`);
+    console.error("Error details:", {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
+    
+    // More specific error messages based on error type
+    let userMessage = "Failed to generate roadmap. Please try again.";
+    
+    if (error.message.includes("Failed to fetch")) {
+      userMessage = "Unable to connect to the server. Please check your internet connection and try again.";
+    } else if (error.message.includes("HTTP error")) {
+      userMessage = `Server error (${error.message}). Please try again later.`;
+    } else if (error.message.includes("Invalid response")) {
+      userMessage = "Received an unexpected response from the server. Please try again.";
+    } else if (error.message.includes("Invalid roadmap data")) {
+      userMessage = "The server returned invalid data. Please try again.";
+    }
+    
+    // Try to show mock data as fallback
+    try {
+      console.log("Attempting to show mock data as fallback");
+      roadmapOutput.innerHTML = '';
+      const mockData = getMockRoadmapData(goalInput.value);
+      const roadmapData = mockData.roadmap;
+      
+      roadmapData.forEach(stage => {
+        const div = document.createElement("div");
+        div.classList.add("roadmap-stage");
+        div.innerHTML = `<h4>${stage.stage}</h4>
+          <strong>Skills:</strong>
+          <ul>${stage.skills.map(skill => `<li>${skill}</li>`).join("")}</ul>
+          <strong>Resources:</strong>
+          <ul>${stage.resources.map(res => `<li><a href="${res.url}" target="_blank">${res.name}</a></li>`).join("")}</ul>
+          <strong>Project:</strong>
+          <p>${stage.project}</p>`;
+        roadmapOutput.appendChild(div);
+      });
+      
+      // Show info message about using mock data
+      const infoDiv = document.createElement('div');
+      infoDiv.style.cssText = 'background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 12px; margin-bottom: 20px; color: #92400e;';
+      infoDiv.innerHTML = '⚠️ <strong>Note:</strong> Unable to connect to AI service. Showing a sample roadmap structure.';
+      roadmapOutput.insertBefore(infoDiv, roadmapOutput.firstChild);
+      
+      modal.style.display = "none";
+      resultModal.style.display = "flex";
+    } catch (fallbackError) {
+      console.error("Even fallback failed:", fallbackError);
+      alert(userMessage);
+    }
   } finally {
     // Hide loading state
     generateBtn.disabled = false;
