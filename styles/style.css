@@ -311,6 +311,41 @@ body.dark .about p { color: #d1d5db; }
   transform: scale(1.05);
 }
 
+.generate-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.generate-btn:disabled:hover {
+  background: #9ca3af;
+  transform: none;
+}
+
+.generate-btn.loading {
+  position: relative;
+  color: transparent;
+}
+
+.generate-btn.loading::after {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  top: 50%;
+  left: 50%;
+  margin-left: -10px;
+  margin-top: -10px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .footer {
   background: #111;
   color: #fff;

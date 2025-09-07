@@ -99,45 +99,77 @@ document.querySelector('#goalInput').addEventListener('keydown', async (e) => {
     alert('Please enter a goal')
     return
   }
-  roadmapOutput.innerHTML = ''
-  const apiResponse = await (await fetchData(goalInput.value)).json()
-  apiResponse.data.roadmap.forEach((stage) => {
-    const div = document.createElement('div')
-    div.classList.add('roadmap-stage')
-    div.innerHTML = `<h4>${stage.stage}</h4>
-      <strong>Skills:</strong>
-      <ul>${stage.skills.map((skill) => `<li>${skill}</li>`).join('')}</ul>
-      <strong>Resources:</strong>
-      <ul>${stage.resources
-        .map(
-          (res) =>
-            `<li><a href="${res.url}" target="_blank">${res.name}</a></li>`
-        )
-        .join('')}</ul>
-      <strong>Project:</strong>
-      <p>${stage.project}</p>`
-    roadmapOutput.appendChild(div)
-  })
-  modal.style.display = 'none'
-  resultModal.style.display = 'flex'
+  
+  // Show loading state
+  generateBtn.disabled = true;
+  generateBtn.classList.add("loading");
+  generateBtn.textContent = "Generating...";
+  
+  try {
+    roadmapOutput.innerHTML = ''
+    const apiResponse = await (await fetchData(goalInput.value)).json()
+    apiResponse.data.roadmap.forEach((stage) => {
+      const div = document.createElement('div')
+      div.classList.add('roadmap-stage')
+      div.innerHTML = `<h4>${stage.stage}</h4>
+        <strong>Skills:</strong>
+        <ul>${stage.skills.map((skill) => `<li>${skill}</li>`).join('')}</ul>
+        <strong>Resources:</strong>
+        <ul>${stage.resources
+          .map(
+            (res) =>
+              `<li><a href="${res.url}" target="_blank">${res.name}</a></li>`
+          )
+          .join('')}</ul>
+        <strong>Project:</strong>
+        <p>${stage.project}</p>`
+      roadmapOutput.appendChild(div)
+    })
+    modal.style.display = 'none'
+    resultModal.style.display = 'flex'
+  } catch (error) {
+    console.error("Error generating roadmap:", error);
+    alert("Failed to generate roadmap. Please try again.");
+  } finally {
+    // Hide loading state
+    generateBtn.disabled = false;
+    generateBtn.classList.remove("loading");
+    generateBtn.textContent = "⚡ Generate Roadmap";
+  }
 })
 
 generateBtn.onclick = async () => {
   if (!goalInput.value) { alert("Please enter a goal"); return; }
-  roadmapOutput.innerHTML = "";
-  const apiResponse = await ((await fetchData(goalInput.value)).json());
-  apiResponse.data.roadmap.forEach(stage => {
-    const div = document.createElement("div");
-    div.classList.add("roadmap-stage");
-    div.innerHTML = `<h4>${stage.stage}</h4>
-      <strong>Skills:</strong>
-      <ul>${stage.skills.map(skill => `<li>${skill}</li>`).join("")}</ul>
-      <strong>Resources:</strong>
-      <ul>${stage.resources.map(res => `<li><a href="${res.url}" target="_blank">${res.name}</a></li>`).join("")}</ul>
-      <strong>Project:</strong>
-      <p>${stage.project}</p>`;
-    roadmapOutput.appendChild(div);
-  });
-  modal.style.display = "none";
-  resultModal.style.display = "flex";
+  
+  // Show loading state
+  generateBtn.disabled = true;
+  generateBtn.classList.add("loading");
+  generateBtn.textContent = "Generating...";
+  
+  try {
+    roadmapOutput.innerHTML = "";
+    const apiResponse = await ((await fetchData(goalInput.value)).json());
+    apiResponse.data.roadmap.forEach(stage => {
+      const div = document.createElement("div");
+      div.classList.add("roadmap-stage");
+      div.innerHTML = `<h4>${stage.stage}</h4>
+        <strong>Skills:</strong>
+        <ul>${stage.skills.map(skill => `<li>${skill}</li>`).join("")}</ul>
+        <strong>Resources:</strong>
+        <ul>${stage.resources.map(res => `<li><a href="${res.url}" target="_blank">${res.name}</a></li>`).join("")}</ul>
+        <strong>Project:</strong>
+        <p>${stage.project}</p>`;
+      roadmapOutput.appendChild(div);
+    });
+    modal.style.display = "none";
+    resultModal.style.display = "flex";
+  } catch (error) {
+    console.error("Error generating roadmap:", error);
+    alert("Failed to generate roadmap. Please try again.");
+  } finally {
+    // Hide loading state
+    generateBtn.disabled = false;
+    generateBtn.classList.remove("loading");
+    generateBtn.textContent = "⚡ Generate Roadmap";
+  }
 };
