@@ -49,7 +49,9 @@ const roadmapOutput = document.getElementById("roadmapOutput");
 const fetchData = async (role) => {
   console.log("fetching data ...")
   const query = role.replace(/ /g, '-')
-  const apiResponse = await fetch(`http://localhost:8000/api/v1/roadmap/generate?role=${query}`)
+  const apiResponse = await fetch(
+    `https://eduverse-be-1.onrender.com/api/v1/roadmap/generate?role=${query}`
+  )
   return apiResponse
 }
 
