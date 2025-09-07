@@ -39,14 +39,8 @@ themeToggle.onclick = () => {
     localStorage.setItem("theme", "light");
   }
 };
-document.getElementById('openModal').addEventListener('click', function(e) {
-  e.preventDefault();
-  const href = this.getAttribute('href');
-  document.body.classList.add('fade-out');
-  setTimeout(() => {
-    window.location.href = href;
-  }, 500); // match transition time (0.5s)
-});
+// Keep openModal as a pure modal trigger, no navigation
+// (link-based redirect removed to avoid navigating to null)
 
 const generateBtn = document.querySelector(".generate-btn");
 const goalInput = document.getElementById("goalInput");
@@ -101,7 +95,7 @@ document.querySelector('#goalInput').addEventListener('keydown', async (e) => {
   console.log('hello')
   if (!goalInput.value) {
     alert('Please enter a goal')
-    returndijsopd
+    return
   }
   roadmapOutput.innerHTML = ''
   const apiResponse = await (await fetchData(goalInput.value)).json()
