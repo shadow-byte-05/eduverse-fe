@@ -105,9 +105,32 @@ document.querySelector('#goalInput').addEventListener('keydown', async (e) => {
   generateBtn.classList.add("loading");
   generateBtn.textContent = "Generating...";
   
+  try {
     roadmapOutput.innerHTML = ''
-    const apiResponse = await (await fetchData(goalInput.value)).json()
-    apiResponse.data.roadmap.forEach((stage) => {
+    const response = await fetchData(goalInput.value)
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+    
+    const apiResponse = await response.json()
+    console.log("Full API Response:", apiResponse) // Debug log
+    
+    // Check if we have the expected response structure
+    if (!apiResponse || !apiResponse.data) {
+      console.error("Unexpected API response structure:", apiResponse)
+      throw new Error("Invalid response from server")
+    }
+    
+    // The roadmap data should be in apiResponse.data.roadmap
+    const roadmapData = apiResponse.data.roadmap || apiResponse.data
+    
+    if (!roadmapData || !Array.isArray(roadmapData)) {
+      console.error("Roadmap data is not an array:", roadmapData)
+      throw new Error("Invalid roadmap data format")
+    }
+    
+    roadmapData.forEach((stage) => {
       const div = document.createElement('div')
       div.classList.add('roadmap-stage')
       div.innerHTML = `<h4>${stage.stage}</h4>
@@ -126,14 +149,15 @@ document.querySelector('#goalInput').addEventListener('keydown', async (e) => {
     })
     modal.style.display = 'none'
     resultModal.style.display = 'flex'
-  
+  } catch (error) {
     console.error("Error generating roadmap:", error);
-    alert("Failed to generate roadmap. Please try again.");
-  
+    alert(`Failed to generate roadmap: ${error.message}. Please try again.`);
+  } finally {
     // Hide loading state
     generateBtn.disabled = false;
     generateBtn.classList.remove("loading");
     generateBtn.textContent = "⚡ Generate Roadmap";
+  }
   
 })
 
@@ -147,8 +171,30 @@ generateBtn.onclick = async () => {
   
   try {
     roadmapOutput.innerHTML = "";
-    const apiResponse = await ((await fetchData(goalInput.value)).json());
-    apiResponse.data.roadmap.forEach(stage => {
+    const response = await fetchData(goalInput.value);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const apiResponse = await response.json();
+    console.log("Full API Response:", apiResponse); // Debug log
+    
+    // Check if we have the expected response structure
+    if (!apiResponse || !apiResponse.data) {
+      console.error("Unexpected API response structure:", apiResponse);
+      throw new Error("Invalid response from server");
+    }
+    
+    // The roadmap data should be in apiResponse.data.roadmap
+    const roadmapData = apiResponse.data.roadmap || apiResponse.data;
+    
+    if (!roadmapData || !Array.isArray(roadmapData)) {
+      console.error("Roadmap data is not an array:", roadmapData);
+      throw new Error("Invalid roadmap data format");
+    }
+    
+    roadmapData.forEach(stage => {
       const div = document.createElement("div");
       div.classList.add("roadmap-stage");
       div.innerHTML = `<h4>${stage.stage}</h4>
@@ -164,7 +210,7 @@ generateBtn.onclick = async () => {
     resultModal.style.display = "flex";
   } catch (error) {
     console.error("Error generating roadmap:", error);
-    alert("Failed to generate roadmap. Please try again.");
+    alert(`Failed to generate roadmap: ${error.message}. Please try again.`);
   } finally {
     // Hide loading state
     generateBtn.disabled = false;
