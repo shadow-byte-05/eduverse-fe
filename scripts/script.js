@@ -105,7 +105,6 @@ document.querySelector('#goalInput').addEventListener('keydown', async (e) => {
   generateBtn.classList.add("loading");
   generateBtn.textContent = "Generating...";
   
-  try {
     roadmapOutput.innerHTML = ''
     const apiResponse = await (await fetchData(goalInput.value)).json()
     apiResponse.data.roadmap.forEach((stage) => {
@@ -127,15 +126,15 @@ document.querySelector('#goalInput').addEventListener('keydown', async (e) => {
     })
     modal.style.display = 'none'
     resultModal.style.display = 'flex'
-  } catch (error) {
+  
     console.error("Error generating roadmap:", error);
     alert("Failed to generate roadmap. Please try again.");
-  } finally {
+  
     // Hide loading state
     generateBtn.disabled = false;
     generateBtn.classList.remove("loading");
     generateBtn.textContent = "⚡ Generate Roadmap";
-  }
+  
 })
 
 generateBtn.onclick = async () => {
